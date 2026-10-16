@@ -144,6 +144,12 @@ p{margin:0;line-height:1.75}
 .chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#3a1d00}
 .chip[aria-pressed="true"] .roman{color:#3a1d00}
 .pats{margin-bottom:12px}
+.btn.small{font-size:15px;padding:8px 14px;box-shadow:0 3px 0 #150e27}
+.marks-row{margin-top:8px;gap:8px}
+.mrow{display:flex;align-items:center;gap:10px}
+.mrow .mtxt{flex:1;min-width:0;overflow-wrap:anywhere}
+.mdel{border:0;background:transparent;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:8px}
+.mdel:hover{color:var(--bad)}
 .made{position:sticky;top:8px;z-index:2;margin-bottom:16px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
 .made .h{font-family:var(--f-display);font-size:clamp(24px,5.5vw,32px);line-height:1.35}
 .made .roman{color:var(--gold);font-size:clamp(17px,4vw,21px)}
@@ -544,12 +550,15 @@ const pr=(h,l)=>[h,l];
 function fin(tiles,end,hz,why){
   return {han:tiles.map(t=>t[0]).join('')+end[0],lo:cap(tiles.map(t=>t[1]).join(' '))+end[1],hz:hz+end[2],why};
 }
-const TYPE_Z={p:'人',a:'動物',f:'食物',w:'天氣、日子',l:'所在'};
+const TYPE_Z={p:'人',a:'動物',f:'食物',v:'果子',d:'飲料',w:'天氣、日子',l:'所在',
+  s:'天',u:'日頭',m:'月娘',x:'星',c:'雲',h:'海',k:'溪',q:'山',g:'花',t:'樹仔',r:'草',o:'風',y:'雨'};
 const nsHan=N=>N[0].map(t=>t[0]).join('');
 function adjWhy(N,J){
-  const ty=N[2];if(J[3].includes(ty))return '';
-  if(J[0]==='熱'&&ty==='f')return '食物燒燙燙，台語講「燒」；「熱」是講天氣佮所在。';
-  if(J[0]==='寒'&&ty==='f')return '食物冷去，台語講「冷」；「寒」是講天氣佮所在。';
+  // 主語會使有幾个類別（像西瓜＝食物＋果子），有一个配會著就好
+  const tys=[...N[2]];if(tys.some(t=>J[3].includes(t)))return '';
+  const ty=tys[0],food=ty==='f'||ty==='d';
+  if(J[0]==='熱'&&food)return '食物燒燙燙，台語講「燒」；「熱」是講天氣佮所在。';
+  if(J[0]==='寒'&&food)return '食物冷去，台語講「冷」；「寒」是講天氣佮所在。';
   if((J[0]==='燒'||J[0]==='冷')&&ty==='w')return '天氣講「熱」「寒」；「燒」「冷」是講食物、物件。';
   return `「${nsHan(N)}」配「${J[0]}」怪怪：「${J[0]}」是用來講${[...J[3]].map(k=>TYPE_Z[k]).join('、')}的。`;
 }
@@ -666,10 +675,58 @@ function randomC(P){
   const K={};for(const s of P.slots){const k=K[s.k]||(K[s.k]={n:0,base:s.idx||0,opt:s.opt});k.n+=s.list.length}
   const c={};for(const k in K)c[k]=K[k].opt&&Math.random()<.35?-1:K[k].base+(Math.random()*K[k].n|0);return c;
 }
+/* ---------- 使用者標記：「無人按呢講」／「其實有人講」（會使匯出做訓練資料） ---------- */
+// D.feedback 是建置時對 data/feedback.json 讀入來的，予逐个人共用；SAVE.marks 是這台瀏覽器家己的
+const FB=D.feedback||{bad:[],good:[]};
+function markOf(b){
+  const m=(SAVE.marks||{})[b.han];if(m)return {v:m.v,mine:true};
+  if(FB.bad.includes(b.han))return {v:'bad',mine:false};
+  if(FB.good.includes(b.han))return {v:'good',mine:false};
+  return null;
+}
+// 標記贏過 AI 規則
+function verdictOf(b){
+  const m=markOf(b);
+  if(m&&m.v==='bad')return {why:m.mine?'你標記過：無人按呢講。':'有人標記過：無人按呢講。',mark:m};
+  if(m&&m.v==='good')return {why:'',mark:m};
+  return {why:b.why,mark:null};
+}
+function setMark(b,pat,v){
+  SAVE.marks=SAVE.marks||{};
+  if(!v)delete SAVE.marks[b.han];
+  else{
+    SAVE.marks[b.han]={v,pat,han:b.han,lo:b.lo,hz:b.hz,auto:b.why?'odd':'ok',reason:b.why||'',t:new Date().toISOString()};
+    if(v==='bad')SAVE.book=SAVE.book.filter(x=>x.han!==b.han);
+  }
+  persist();
+}
+function exportMarks(){
+  const marks=Object.values(SAVE.marks||{});
+  const data={app:'hantsia-kong-taigi',kind:'maker-feedback',version:1,exported:new Date().toISOString(),marks};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download=`hantsia-feedback-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function importMarks(file,after){
+  const fr=new FileReader();
+  fr.onload=()=>{
+    try{
+      const d=JSON.parse(fr.result),list=Array.isArray(d)?d:d.marks;
+      if(!Array.isArray(list))throw 0;
+      SAVE.marks=SAVE.marks||{};let n=0;
+      for(const m of list)if(m&&typeof m.han==='string'&&(m.v==='bad'||m.v==='good')){SAVE.marks[m.han]=m;n++}
+      persist();alert(X(`匯入 ${n} 筆標記。`,`Ji̍p ${n} pit.`));
+    }catch(e){alert(X('這个檔案讀袂入來，愛是「匯出」的 JSON 檔。','Tóng-àn tha̍k bē ji̍p--lâi.'))}
+    after();
+  };
+  fr.readAsText(file);
+}
+
 function randomNatural(P){
   for(let g=0;g<3000;g++){
     const c=randomC(P);
-    if(!P.build(c).why)return c;
+    if(!verdictOf(P.build(c)).why)return c;
   }
   return P.def();
 }
@@ -678,20 +735,34 @@ function maker(pat='act',mode='free'){
   let c=P.def(),target=null,round=0,wins=0,tries=0;
   if(mode==='quiz')target=randomNatural(P);
   const render=(spin=false)=>{
-    const b=P.build(c),inBook=SAVE.book.some(x=>x.han===b.han);
+    const b=P.build(c),inBook=SAVE.book.some(x=>x.han===b.han),vd=verdictOf(b),mk=vd.mark;
+    const marks=Object.values(SAVE.marks||{}).sort((x,y)=>x.t<y.t?1:-1);
+    const verdictHTML=mk&&mk.v==='bad'?`<span class="verdict no" style="font-size:17px">🚫 ${esc(vd.why)}</span>`
+      :vd.why?`<span class="verdict no" style="font-size:17px">🤔 ${esc(vd.why)}</span>`
+      :`<span class="verdict ok" style="font-size:17px">✅ ${X('真自然的台語句！','Tsin tsū-jiân ê Tâi-gí kù!')}${mk&&mk.v==='good'?' · 👍 '+(mk.mine?X('你確認過','Lí khak-jīn--kuè'):X('有人確認過','Ū lâng khak-jīn--kuè')):''}</span>`;
+    const markBtns=mk&&mk.mine
+      ?`<button class="btn ghost small" id="unmark">↩ ${X('取消標記','Tshú-siau piau-kì')}</button>`
+      :`${!(mk&&mk.v==='bad')?`<button class="btn ghost small" id="mbad">👎 ${X('無人按呢講','Bô lâng án-ne kóng')}</button>`:''}${b.why&&!(mk&&mk.v==='good')?`<button class="btn ghost small" id="mgood">👍 ${X('其實有人講','Kî-si̍t ū lâng kóng')}</button>`:''}`;
     const head=mode==='quiz'
       ?`<div class="prompt">${X('用造句機講出這句：','Iōng tsō-kù-ki kóng tshut tsit kù:')}</div><div class="meaning">${esc(P.build(target).hz)}</div>`:'';
     main.innerHTML=bar(X('造句機','Tsō-kù-ki'),`<div class="seg" id="mode"><button data-m="free" aria-pressed="${mode==='free'}">${X('自由造句','Tsū-iû')}</button><button data-m="quiz" aria-pressed="${mode==='quiz'}">${X('挑戰','Thiáu-tsiàn')}</button></div>`)+
     `<div class="seg pats" id="pats">${Object.entries(PAT).map(([id,p])=>`<button data-p="${id}" aria-pressed="${id===pat}">${X(p.h,p.l)}</button>`).join('')}</div>
     <div class="card made${spin?' spin':''}">${head}<div class="h">${esc(b.han)}</div><div class="roman">${esc(R(b.lo))}</div>
-      ${mode==='free'?`<div class="z">${esc(b.hz)}</div><div class="why">${b.why?`<span class="verdict no" style="font-size:17px">🤔 ${esc(b.why)}</span>`:`<span class="verdict ok" style="font-size:17px">✅ ${X('真自然的台語句！','Tsin tsū-jiân ê Tâi-gí kù!')}</span>`}</div>`:'<div class="why" id="qres"></div>'}
+      ${mode==='free'?`<div class="z">${esc(b.hz)}</div><div class="why">${verdictHTML}</div><div class="row marks-row">${markBtns}</div>`:'<div class="why" id="qres"></div>'}
       <div class="row" style="margin-top:12px">
-      ${mode==='free'?`<button class="btn ghost" id="rnd">🎲 ${X('隨意組','Suî-ì tsoo')}</button><button class="btn gold" id="save" ${b.why||inBook?'disabled':''}>📒 ${inBook?X('簿仔有矣','Phōo-á ū--ah'):X('收入句仔簿','Siu ji̍p kù-á-phōo')}</button>`
+      ${mode==='free'?`<button class="btn ghost" id="rnd">🎲 ${X('隨意組','Suî-ì tsoo')}</button><button class="btn gold" id="save" ${vd.why||inBook?'disabled':''}>📒 ${inBook?X('簿仔有矣','Phōo-á ū--ah'):X('收入句仔簿','Siu ji̍p kù-á-phōo')}</button>`
         :`<button class="btn jade" id="qchk">${X('檢查','Kiám-tsa')}</button><span class="pill">${round+1} / 8 · ✅ ${wins}</span>`}</div></div>
     <div class="slots">${P.slots.map(s=>`<div class="slot"><h3>${X(s.h,s.l)}</h3><div class="chips" data-k="${s.k}">
         ${s.opt?`<button class="chip" data-i="-1" aria-pressed="${c[s.k]===-1}"><span class="h">—</span><span class="roman">${X('免','bián')}</span></button>`:''}
         ${s.list.map((w,i)=>`<button class="chip" data-i="${i+slotBase(s)}" aria-pressed="${c[s.k]===i+slotBase(s)}"><span class="h">${esc(w[0])}</span><span class="roman">${esc(R(w[1]))}</span></button>`).join('')}</div></div>`).join('')}</div>
     ${mode==='free'&&SAVE.book.length?`<div class="sec">${X('我的句仔簿','GUÁ Ê KÙ-Á-PHŌO')}（${SAVE.book.length}）</div><div class="book">${SAVE.book.slice(-12).reverse().map(x=>`<div>${isLo()?'':esc(x.han)+'　'}<span class="roman">${esc(R(x.lo))}</span></div>`).join('')}</div>`:''}
+    ${mode==='free'?`<div class="sec">${X('我的標記','GUÁ Ê PIAU-KÌ')}（${marks.length}）</div>
+    <div class="card marks-panel">
+      <p class="muted" style="font-size:14px">${X('隨意組出來的句若無人按呢講，點「👎 無人按呢講」，以後就袂閣出現。標記存佇這台瀏覽器；會使匯出做 JSON 檔保存，抑是提來改進造句機的規則。','Piau-kì tsûn tī tsit tâi liû-lám-khì.')}</p>
+      <div class="row" style="margin-top:10px"><button class="btn ghost small" id="mexp" ${marks.length?'':'disabled'}>⬇ ${X('匯出標記','Huē-tshut')}</button>
+        <button class="btn ghost small" id="mimp">⬆ ${X('匯入標記','Huē-ji̍p')}</button><input type="file" id="mfile" accept=".json,application/json" hidden></div>
+      ${marks.length?`<div class="book" style="margin-top:12px">${marks.slice(0,20).map(m=>`<div class="mrow"><span>${m.v==='bad'?'👎':'👍'}</span><span class="mtxt">${isLo()?'':esc(m.han)+'　'}<span class="roman">${esc(R(m.lo))}</span></span><button class="mdel" data-h="${esc(m.han)}" aria-label="${X('刪掉','Thâi--tiāu')}">✕</button></div>`).join('')}</div>`:''}
+    </div>`:''}
     <footer>${X('造句機的詞攏有對教育部辭典查證；「自然無」的判斷是 AI 整理的教學規則，毋是官方資料，實際講話有時較活。','Sû lóng ū tuì sû-tián tshâ-tsìng.')}</footer>`;
     onBack(home);
     main.querySelectorAll('#mode button').forEach(x=>x.onclick=()=>{SFX.tap();maker(pat,x.dataset.m)});
@@ -700,6 +771,14 @@ function maker(pat='act',mode='free'){
     if(mode==='free'){
       $('#rnd').onclick=()=>{c=randomNatural(P);SFX.spin();keep(()=>render(true))};
       $('#save').onclick=()=>{SAVE.book.push({han:b.han,lo:b.lo});persist();SFX.right();keep(render)};
+      const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
+      on('#mbad',()=>{setMark(b,pat,'bad');SFX.back();keep(render)});
+      on('#mgood',()=>{setMark(b,pat,'good');SFX.right();keep(render)});
+      on('#unmark',()=>{setMark(b,pat,null);SFX.tap();keep(render)});
+      on('#mexp',()=>{SFX.tap();exportMarks()});
+      on('#mimp',()=>$('#mfile').click());
+      $('#mfile').onchange=e=>{const f=e.target.files[0];if(f)importMarks(f,()=>keep(render))};
+      main.querySelectorAll('.mdel').forEach(x=>x.onclick=()=>{delete SAVE.marks[x.dataset.h];persist();SFX.back();keep(render)});
     }else{
       $('#qchk').onclick=()=>{
         const t=P.build(target),ok=P.build(c).han===t.han,r=$('#qres');

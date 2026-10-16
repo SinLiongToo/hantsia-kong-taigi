@@ -275,14 +275,14 @@ MAKER.LOC = [ // [漢字, 羅馬字, 華語, in＝厝內／out＝外口]，「�
   ['公園', 'kong-hn̂g', '公園', 'out'], ['夜市', 'iā-tshī', '夜市', 'out'], ['外口', 'guā-kháu', '外面', 'out'], ['圖書館', 'tôo-su-kuán', '圖書館', 'out']];
 MAKER.W = { ti: ['佇', 'tī'], kam: ['敢', 'kám'], pi: ['比', 'pí'], khah: ['較', 'khah'], kah: ['佮', 'kah'], penn: ['平', 'pênn'] };
 // 形容句、比較句的主語：[[詞…], 華語, 類別, 比較的組]
-// 類別 p＝人 a＝動物 f＝食物 w＝日子／天氣 l＝所在；自然逐項家己一類：
+// 類別 p＝人 a＝動物 f＝食物 v＝果子（紅、圓） d＝飲料 w＝日子／天氣 l＝所在；一个主語會使有幾个類別；自然逐項家己一類：
 // s＝天 u＝日頭 m＝月娘 x＝星 c＝雲 h＝海 k＝溪 q＝山 g＝花 t＝樹仔 r＝草 o＝風 y＝雨（比較的組攏是 n，會使互相比）
 MAKER.NS = [
   [[['我', 'guá']], '我', 'p'], [[['你', 'lí']], '你', 'p'], [[['伊', 'i']], '他', 'p'], [[['阿公', 'a-kong']], '爺爺', 'p'],
   [[['小妹', 'sió-muē']], '妹妹', 'p'], [[['老師', 'lāu-su']], '老師', 'p'],
   [[['這', 'tsit'], ['隻', 'tsiah'], ['貓', 'niau']], '這隻貓', 'a'], [[['這', 'tsit'], ['隻', 'tsiah'], ['狗', 'káu']], '這隻狗', 'a'],
-  [[['這', 'tsit'], ['碗', 'uánn'], ['麵', 'mī']], '這碗麵', 'f'], [[['這', 'tsit'], ['粒', 'lia̍p'], ['西瓜', 'si-kue']], '這顆西瓜', 'f'],
-  [[['咖啡', 'ka-pi']], '咖啡', 'f'], [[['天氣', 'thinn-khì']], '天氣', 'w'], [[['今仔日', 'kin-á-ji̍t']], '今天', 'w'],
+  [[['這', 'tsit'], ['碗', 'uánn'], ['麵', 'mī']], '這碗麵', 'f'], [[['這', 'tsit'], ['粒', 'lia̍p'], ['西瓜', 'si-kue']], '這顆西瓜', 'fv', 'f'],
+  [[['咖啡', 'ka-pi']], '咖啡', 'd', 'f'], [[['天氣', 'thinn-khì']], '天氣', 'w'], [[['今仔日', 'kin-á-ji̍t']], '今天', 'w'],
   [[['昨昏', 'tsa-hng']], '昨天', 'w'], [[['夜市', 'iā-tshī']], '夜市', 'l'], [[['這', 'tsit'], ['間', 'king'], ['厝', 'tshù']], '這間房子', 'l'],
   [[['學校', 'ha̍k-hāu']], '學校', 'l'],
   [[['天', 'thinn']], '天空', 's', 'n'], [[['日頭', 'ji̍t-thâu']], '太陽', 'u', 'n'], [[['月娘', 'gue̍h-niû']], '月亮', 'm', 'n'],
@@ -295,23 +295,23 @@ MAKER.ADJ = [ // [漢字, 羅馬字, 華語, 會使配的類別, 疊字的華語
   ['媠', 'suí', '漂亮', 'palsmxchkqgtr'], ['古錐', 'kóo-tsui', '可愛', 'pa'], ['聰明', 'tshong-bîng', '聰明', 'pa'], ['忝', 'thiám', '累', 'pa'],
   ['歡喜', 'huann-hí', '高興', 'p'], ['懸', 'kuân', '高', 'pqts'], ['肥', 'puî', '胖', 'pa'], ['瘦', 'sán', '瘦', 'pa'], ['乖', 'kuai', '乖', 'pa'],
   ['健康', 'kiān-khong', '健康', 'pa'], ['好', 'hó', '好', 'pw'], ['大', 'tuā', '大', 'afluhqgtoy'], ['細', 'sè', '小', 'aflgty'],
-  ['芳', 'phang', '香', 'fg'], ['甜', 'tinn', '甜', 'f'], ['鹹', 'kiâm', '鹹', 'f'], ['酸', 'sng', '酸', 'f'], ['燒', 'sio', '燙', 'f'],
-  ['冷', 'líng', '涼', 'fk'], ['貴', 'kuì', '貴', 'fl'], ['俗', 'sio̍k', '便宜', 'fl', '便便宜宜的'], ['熱', 'jua̍h', '熱', 'wl'], ['寒', 'kuânn', '冷', 'wl'],
+  ['芳', 'phang', '香', 'fgd'], ['甜', 'tinn', '甜', 'fd'], ['鹹', 'kiâm', '鹹', 'f'], ['酸', 'sng', '酸', 'fd'], ['燒', 'sio', '燙', 'fd'],
+  ['冷', 'líng', '涼', 'fkd'], ['貴', 'kuì', '貴', 'fld'], ['俗', 'sio̍k', '便宜', 'fld', '便便宜宜的'], ['熱', 'jua̍h', '熱', 'wl'], ['寒', 'kuânn', '冷', 'wl'],
   ['鬧熱', 'lāu-jia̍t', '熱鬧', 'l'], ['清氣', 'tshing-khì', '乾淨', 'lhk'], ['遠', 'hn̄g', '遠', 'l'], ['近', 'kīn', '近', 'l'],
   // 自然佮色水
   ['藍', 'nâ', '藍', 'sh'], ['闊', 'khuah', '寬闊', 'shl', '寬寬的'], ['深', 'tshim', '深', 'hk'], ['清', 'tshing', '清澈', 'hk', '清清的'],
-  ['光', 'kng', '亮', 'umxl'], ['圓', 'înn', '圓', 'mf'], ['暗', 'àm', '暗', 'sl'], ['炎', 'iām', '炎熱', 'u', '熱辣辣的'],
-  ['透', 'thàu', '強', 'o', '強強的'], ['涼', 'liâng', '涼爽', 'wol', '涼涼的'], ['青', 'tshenn', '綠', 'qtr'], ['紅', 'âng', '紅', 'guf'],
+  ['光', 'kng', '亮', 'umxl'], ['圓', 'înn', '圓', 'mv'], ['暗', 'àm', '暗', 'sl'], ['炎', 'iām', '炎熱', 'u', '熱辣辣的'],
+  ['透', 'thàu', '強', 'o', '強強的'], ['涼', 'liâng', '涼爽', 'wol', '涼涼的'], ['青', 'tshenn', '綠', 'qtr'], ['紅', 'âng', '紅', 'guv'],
   ['白', 'pe̍h', '白', 'cp'], ['烏', 'oo', '黑', 'csp'], ['黃', 'n̂g', '黃', 'g']];
 // 疊字 AABB 干焦用辭典有收的
 MAKER.AABB = { '歡喜': ['歡歡喜喜', 'huann-huann-hí-hí', '高高興興的'] };
 // ABB 疊字形容詞：攏是辭典詞條，華語參考辭典解說
 MAKER.ABB = [
-  ['紅記記', 'âng-kì-kì', '紅通通的', 'guf'], ['白蔥蔥', 'pe̍h-tshang-tshang', '白淨淨的', 'cp'], ['烏趖趖', 'oo-sô-sô', '烏黑的', 'cs'],
+  ['紅記記', 'âng-kì-kì', '紅通通的', 'guv'], ['白蔥蔥', 'pe̍h-tshang-tshang', '白淨淨的', 'cp'], ['烏趖趖', 'oo-sô-sô', '烏黑的', 'cs'],
   ['暗趖趖', 'àm-sô-sô', '黑漆漆的', 'sl'], ['金鑠鑠', 'kim-siak-siak', '金光閃閃的', 'umx'], ['黃錦錦', 'n̂g-gìm-gìm', '金黃色的', 'g'],
-  ['闊莽莽', 'khuah-bóng-bóng', '一望無際的', 'sh'], ['赤焱焱', 'tshiah-iānn-iānn', '火辣辣的', 'u'], ['冷吱吱', 'líng-ki-ki', '冷冰冰的', 'fk'],
-  ['燒滾滾', 'sio-kún-kún', '熱騰騰的', 'f'], ['甜粅粅', 'tinn-but-but', '甜滋滋的', 'f'], ['鹹篤篤', 'kiâm-tok-tok', '鹹得要命', 'f'],
-  ['貴參參', 'kuì-som-som', '貴得要命', 'fl'], ['媠噹噹', 'suí-tang-tang', '美極了', 'plgqhs'], ['肥朒朒', 'puî-tsut-tsut', '胖嘟嘟的', 'pa'],
+  ['闊莽莽', 'khuah-bóng-bóng', '一望無際的', 'sh'], ['赤焱焱', 'tshiah-iānn-iānn', '火辣辣的', 'u'], ['冷吱吱', 'líng-ki-ki', '冷冰冰的', 'fkd'],
+  ['燒滾滾', 'sio-kún-kún', '熱騰騰的', 'fd'], ['甜粅粅', 'tinn-but-but', '甜滋滋的', 'fd'], ['鹹篤篤', 'kiâm-tok-tok', '鹹得要命', 'f'],
+  ['貴參參', 'kuì-som-som', '貴得要命', 'fld'], ['媠噹噹', 'suí-tang-tang', '美極了', 'plgqhs'], ['肥朒朒', 'puî-tsut-tsut', '胖嘟嘟的', 'pa'],
   ['笑微微', 'tshiò-bi-bi', '笑瞇瞇的', 'p'], ['活跳跳', 'ua̍h-thiàu-thiàu', '活蹦亂跳的', 'pa'], ['鬧猜猜', 'nāu-tshai-tshai', '鬧哄哄的', 'l'],
   ['新點點', 'sin-tiám-tiám', '嶄新的', 'l'], ['澹漉漉', 'tâm-lok-lok', '溼答答的', 'par']];
 for (const k of ['S', 'T', 'A', 'E', 'ADV', 'LOC', 'DEG', 'ADJ', 'ABB']) for (const [h, l] of MAKER[k]) verify(h, l, `造句機 ${k}`);
@@ -330,7 +330,15 @@ const lessonOut = ORDER.map(id => all.find(L => L.id === id));
 
 /* ---------- 輸出 ---------- */
 if (problems.length) { console.error('查證有問題：\n' + problems.join('\n')); process.exit(1); }
-const data = { built: new Date().toISOString().slice(0, 10), sents, lessons: lessonOut, maker: MAKER };
+// 使用者匯出的標記（data/feedback.json，會使無）：👎 的句逐个人攏袂閣隨機出現，👍 的句算自然
+const FEEDBACK = path.join(__dirname, '..', 'data', 'feedback.json');
+const feedback = { bad: [], good: [] };
+if (fs.existsSync(FEEDBACK)) {
+  const fb = JSON.parse(fs.readFileSync(FEEDBACK, 'utf8'));
+  for (const m of (Array.isArray(fb) ? fb : fb.marks) || []) if (m && typeof m.han === 'string' && feedback[m.v] && !feedback[m.v].includes(m.han)) feedback[m.v].push(m.han);
+  console.log(`標記：👎 ${feedback.bad.length}、👍 ${feedback.good.length}（${FEEDBACK}）`);
+}
+const data = { built: new Date().toISOString().slice(0, 10), sents, lessons: lessonOut, maker: MAKER, feedback };
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, '// 自動產生，毋通手改。來源：教育部《臺灣台語常用詞辭典》開放資料（g0v/moedict-data-twblg）\n' +
   '// 產生方式：node tools/build-data.js\nwindow.TG_DATA=' + JSON.stringify(data) + ';\n');
