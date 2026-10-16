@@ -186,7 +186,7 @@ const gram = LESSONS.map(L => {
 });
 
 /* ---------- 詞彙課（詞卡＋選擇題） ---------- */
-const VOCAB = [
+const VOCAB_DEF = () => [
   { id: 'greet', title: '相借問', note: '見面、感謝、會失禮、相辭——上捷用的幾句。（「你好」「免客氣」「食飽未」辭典無收做詞條，所以無提來用）', words: [
     ['歡迎', 'huan-gîng', '歡迎'], ['多謝', 'to-siā', '謝謝'], ['感謝', 'kám-siā', '感謝'], ['勞力', 'lóo-la̍t', '謝謝（麻煩你了）'],
     ['歹勢', 'pháinn-sè', '不好意思'], ['失禮', 'sit-lé', '對不起'], ['無要緊', 'bô iàu-kín', '沒關係'], ['借問', 'tsioh-mn̄g', '請問'],
@@ -219,21 +219,21 @@ const VOCAB = [
     ['紅', 'âng', '紅'], ['白', 'pe̍h', '白'], ['烏', 'oo', '黑'], ['青', 'tshenn', '綠'], ['黃', 'n̂g', '黃'], ['大', 'tuā', '大'], ['細', 'sè', '小'],
     ['好', 'hó', '好'], ['歹', 'pháinn', '壞'], ['媠', 'suí', '漂亮'], ['䆀', 'bái', '醜'], ['懸', 'kuân', '高'], ['低', 'kē', '低、矮'],
     ['長', 'tn̂g', '長'], ['短', 'té', '短'], ['熱', 'jua̍h', '熱'], ['寒', 'kuânn', '冷'], ['濟', 'tsē', '多'], ['少', 'tsió', '少'], ['歡喜', 'huann-hí', '高興']] },
+  { id: 'tsuian', title: '自然', note: '台語「日頭」是太陽、「月娘」是月亮、「樹仔」是樹。講天氣：「落雨」是下雨、「風真透」是風很大。', words: [
+    ['天', 'thinn', '天空'], ['日頭', 'ji̍t-thâu', '太陽'], ['月娘', 'gue̍h-niû', '月亮'], ['星', 'tshenn', '星星'], ['雲', 'hûn', '雲'], ['虹', 'khīng', '彩虹'],
+    ['海', 'hái', '海'], ['溪', 'khe', '溪'], ['山', 'suann', '山'], ['花', 'hue', '花'], ['樹仔', 'tshiū-á', '樹'], ['草', 'tsháu', '草'],
+    ['風', 'hong', '風'], ['雨', 'hōo', '雨'], ['雪', 'seh', '雪'], ['霧', 'bū', '霧'], ['風颱', 'hong-thai', '颱風'], ['落雨', 'lo̍h-hōo', '下雨']] },
+  { id: 'tiap', title: '疊字形容', note: '台語形容詞足愛疊字：①疊兩擺「紅紅」較溫和，疊三擺「紅紅紅」是真紅；②「紅記記」這款 ABB 疊字是固定的講法，真有畫面。疊字本身就有程度，頭前毋免閣加「真」——講「花紅記記」，毋是「花真紅記記」。', words: MAKER.ABB.map(([h, l, z]) => [h, l, z]) },
 ];
-const voc = VOCAB.map(L => {
+let voc;
+function buildVocab() { voc = VOCAB_DEF().map(L => {
   for (const [h, l] of L.words) verify(h, l, `詞彙課「${L.title}」`);
   const keys = new Set(L.words.map(([h, l]) => h + ':' + l));
   const ids = [];
   for (let i = 0; i < sents.length && ids.length < 6; i++)
     if (sents[i].lv <= 2 && sents[i].t.some(([h, l]) => keys.has(h + ':' + l.toLowerCase().replace(/[.,?!]/g, '')))) ids.push(i);
   return { ...L, kind: 'vocab', s: ids };
-});
-// 課的順序：詞彙課插佇語法課中間
-const ORDER = ['greet', 'lang', 'num', 'si', 'u', 'ke', 'beh', 'teh', 'si5', 'ah', 'e', 'tsiah5', 'kam', 'ka', 'hoo', 'tong', 'ti', 'kah',
-  'khah', 'sin', 'mng', 'long', 'ma', 'koh', 'hing', 'to', 'tsiah', 'bue', 'mai', 'kap', 'e5', 'liong', 'thoo'];
-const all = [...gram, ...voc];
-if (new Set(ORDER).size !== all.length || ORDER.some(id => !all.find(L => L.id === id))) problems.push('ORDER 佮課無對齊');
-const lessonOut = ORDER.map(id => all.find(L => L.id === id));
+}); }
 
 /* ---------- 3. 造句機詞庫（每个詞攏對辭典查證；組合規則是 AI 整理） ---------- */
 const MAKER = {
@@ -274,7 +274,9 @@ MAKER.LOC = [ // [漢字, 羅馬字, 華語, in＝厝內／out＝外口]，「�
   ['厝', 'tshù', '家', 'in'], ['房間', 'pâng-king', '房間', 'in'], ['灶跤', 'tsàu-kha', '廚房', 'in'], ['學校', 'ha̍k-hāu', '學校', 'out'],
   ['公園', 'kong-hn̂g', '公園', 'out'], ['夜市', 'iā-tshī', '夜市', 'out'], ['外口', 'guā-kháu', '外面', 'out'], ['圖書館', 'tôo-su-kuán', '圖書館', 'out']];
 MAKER.W = { ti: ['佇', 'tī'], kam: ['敢', 'kám'], pi: ['比', 'pí'], khah: ['較', 'khah'], kah: ['佮', 'kah'], penn: ['平', 'pênn'] };
-// 形容句、比較句的主語：[[詞…], 華語, 類別] p＝人 a＝動物 f＝食物 w＝日子／天氣 l＝所在
+// 形容句、比較句的主語：[[詞…], 華語, 類別, 比較的組]
+// 類別 p＝人 a＝動物 f＝食物 w＝日子／天氣 l＝所在；自然逐項家己一類：
+// s＝天 u＝日頭 m＝月娘 x＝星 c＝雲 h＝海 k＝溪 q＝山 g＝花 t＝樹仔 r＝草 o＝風 y＝雨（比較的組攏是 n，會使互相比）
 MAKER.NS = [
   [[['我', 'guá']], '我', 'p'], [[['你', 'lí']], '你', 'p'], [[['伊', 'i']], '他', 'p'], [[['阿公', 'a-kong']], '爺爺', 'p'],
   [[['小妹', 'sió-muē']], '妹妹', 'p'], [[['老師', 'lāu-su']], '老師', 'p'],
@@ -282,19 +284,49 @@ MAKER.NS = [
   [[['這', 'tsit'], ['碗', 'uánn'], ['麵', 'mī']], '這碗麵', 'f'], [[['這', 'tsit'], ['粒', 'lia̍p'], ['西瓜', 'si-kue']], '這顆西瓜', 'f'],
   [[['咖啡', 'ka-pi']], '咖啡', 'f'], [[['天氣', 'thinn-khì']], '天氣', 'w'], [[['今仔日', 'kin-á-ji̍t']], '今天', 'w'],
   [[['昨昏', 'tsa-hng']], '昨天', 'w'], [[['夜市', 'iā-tshī']], '夜市', 'l'], [[['這', 'tsit'], ['間', 'king'], ['厝', 'tshù']], '這間房子', 'l'],
-  [[['學校', 'ha̍k-hāu']], '學校', 'l']];
+  [[['學校', 'ha̍k-hāu']], '學校', 'l'],
+  [[['天', 'thinn']], '天空', 's', 'n'], [[['日頭', 'ji̍t-thâu']], '太陽', 'u', 'n'], [[['月娘', 'gue̍h-niû']], '月亮', 'm', 'n'],
+  [[['星', 'tshenn']], '星星', 'x', 'n'], [[['雲', 'hûn']], '雲', 'c', 'n'], [[['海', 'hái']], '海', 'h', 'n'], [[['溪', 'khe']], '溪', 'k', 'n'],
+  [[['山', 'suann']], '山', 'q', 'n'], [[['花', 'hue']], '花', 'g', 'n'], [[['樹仔', 'tshiū-á']], '樹', 't', 'n'], [[['草', 'tsháu']], '草', 'r', 'n'],
+  [[['風', 'hong']], '風', 'o', 'n'], [[['雨', 'hōo']], '雨', 'y', 'n']];
+for (const n of MAKER.NS) if (!n[3]) n[3] = n[2];
 MAKER.DEG = [['真', 'tsin', '很'], ['誠', 'tsiânn', '非常'], ['足', 'tsiok', '超'], ['有夠', 'ū-kàu', '實在很'], ['傷', 'siunn', '太'], ['較', 'khah', '比較'], ['無', 'bô', '不']];
-MAKER.ADJ = [ // [漢字, 羅馬字, 華語, 會使配的類別]
-  ['媠', 'suí', '漂亮', 'pal'], ['古錐', 'kóo-tsui', '可愛', 'pa'], ['聰明', 'tshong-bîng', '聰明', 'pa'], ['忝', 'thiám', '累', 'pa'],
-  ['歡喜', 'huann-hí', '高興', 'p'], ['懸', 'kuân', '高', 'p'], ['肥', 'puî', '胖', 'pa'], ['瘦', 'sán', '瘦', 'pa'], ['乖', 'kuai', '乖', 'pa'],
-  ['健康', 'kiān-khong', '健康', 'pa'], ['好', 'hó', '好', 'pw'], ['大', 'tuā', '大', 'afl'], ['細', 'sè', '小', 'afl'],
-  ['芳', 'phang', '香', 'f'], ['甜', 'tinn', '甜', 'f'], ['鹹', 'kiâm', '鹹', 'f'], ['酸', 'sng', '酸', 'f'], ['燒', 'sio', '燙', 'f'],
-  ['冷', 'líng', '涼', 'f'], ['貴', 'kuì', '貴', 'fl'], ['俗', 'sio̍k', '便宜', 'fl'], ['熱', 'jua̍h', '熱', 'wl'], ['寒', 'kuânn', '冷', 'wl'],
-  ['鬧熱', 'lāu-jia̍t', '熱鬧', 'l'], ['清氣', 'tshing-khì', '乾淨', 'l'], ['遠', 'hn̄g', '遠', 'l'], ['近', 'kīn', '近', 'l']];
-for (const k of ['S', 'T', 'A', 'E', 'ADV', 'LOC', 'DEG', 'ADJ']) for (const [h, l] of MAKER[k]) verify(h, l, `造句機 ${k}`);
+MAKER.ADJ = [ // [漢字, 羅馬字, 華語, 會使配的類別, 疊字的華語（無寫就自動）]
+  ['媠', 'suí', '漂亮', 'palsmxchkqgtr'], ['古錐', 'kóo-tsui', '可愛', 'pa'], ['聰明', 'tshong-bîng', '聰明', 'pa'], ['忝', 'thiám', '累', 'pa'],
+  ['歡喜', 'huann-hí', '高興', 'p'], ['懸', 'kuân', '高', 'pqts'], ['肥', 'puî', '胖', 'pa'], ['瘦', 'sán', '瘦', 'pa'], ['乖', 'kuai', '乖', 'pa'],
+  ['健康', 'kiān-khong', '健康', 'pa'], ['好', 'hó', '好', 'pw'], ['大', 'tuā', '大', 'afluhqgtoy'], ['細', 'sè', '小', 'aflgty'],
+  ['芳', 'phang', '香', 'fg'], ['甜', 'tinn', '甜', 'f'], ['鹹', 'kiâm', '鹹', 'f'], ['酸', 'sng', '酸', 'f'], ['燒', 'sio', '燙', 'f'],
+  ['冷', 'líng', '涼', 'fk'], ['貴', 'kuì', '貴', 'fl'], ['俗', 'sio̍k', '便宜', 'fl', '便便宜宜的'], ['熱', 'jua̍h', '熱', 'wl'], ['寒', 'kuânn', '冷', 'wl'],
+  ['鬧熱', 'lāu-jia̍t', '熱鬧', 'l'], ['清氣', 'tshing-khì', '乾淨', 'lhk'], ['遠', 'hn̄g', '遠', 'l'], ['近', 'kīn', '近', 'l'],
+  // 自然佮色水
+  ['藍', 'nâ', '藍', 'sh'], ['闊', 'khuah', '寬闊', 'shl', '寬寬的'], ['深', 'tshim', '深', 'hk'], ['清', 'tshing', '清澈', 'hk', '清清的'],
+  ['光', 'kng', '亮', 'umxl'], ['圓', 'înn', '圓', 'mf'], ['暗', 'àm', '暗', 'sl'], ['炎', 'iām', '炎熱', 'u', '熱辣辣的'],
+  ['透', 'thàu', '強', 'o', '強強的'], ['涼', 'liâng', '涼爽', 'wol', '涼涼的'], ['青', 'tshenn', '綠', 'qtr'], ['紅', 'âng', '紅', 'guf'],
+  ['白', 'pe̍h', '白', 'cp'], ['烏', 'oo', '黑', 'csp'], ['黃', 'n̂g', '黃', 'g']];
+// 疊字 AABB 干焦用辭典有收的
+MAKER.AABB = { '歡喜': ['歡歡喜喜', 'huann-huann-hí-hí', '高高興興的'] };
+// ABB 疊字形容詞：攏是辭典詞條，華語參考辭典解說
+MAKER.ABB = [
+  ['紅記記', 'âng-kì-kì', '紅通通的', 'guf'], ['白蔥蔥', 'pe̍h-tshang-tshang', '白淨淨的', 'cp'], ['烏趖趖', 'oo-sô-sô', '烏黑的', 'cs'],
+  ['暗趖趖', 'àm-sô-sô', '黑漆漆的', 'sl'], ['金鑠鑠', 'kim-siak-siak', '金光閃閃的', 'umx'], ['黃錦錦', 'n̂g-gìm-gìm', '金黃色的', 'g'],
+  ['闊莽莽', 'khuah-bóng-bóng', '一望無際的', 'sh'], ['赤焱焱', 'tshiah-iānn-iānn', '火辣辣的', 'u'], ['冷吱吱', 'líng-ki-ki', '冷冰冰的', 'fk'],
+  ['燒滾滾', 'sio-kún-kún', '熱騰騰的', 'f'], ['甜粅粅', 'tinn-but-but', '甜滋滋的', 'f'], ['鹹篤篤', 'kiâm-tok-tok', '鹹得要命', 'f'],
+  ['貴參參', 'kuì-som-som', '貴得要命', 'fl'], ['媠噹噹', 'suí-tang-tang', '美極了', 'plgqhs'], ['肥朒朒', 'puî-tsut-tsut', '胖嘟嘟的', 'pa'],
+  ['笑微微', 'tshiò-bi-bi', '笑瞇瞇的', 'p'], ['活跳跳', 'ua̍h-thiàu-thiàu', '活蹦亂跳的', 'pa'], ['鬧猜猜', 'nāu-tshai-tshai', '鬧哄哄的', 'l'],
+  ['新點點', 'sin-tiám-tiám', '嶄新的', 'l'], ['澹漉漉', 'tâm-lok-lok', '溼答答的', 'par']];
+for (const k of ['S', 'T', 'A', 'E', 'ADV', 'LOC', 'DEG', 'ADJ', 'ABB']) for (const [h, l] of MAKER[k]) verify(h, l, `造句機 ${k}`);
+for (const k in MAKER.AABB) verify(MAKER.AABB[k][0], MAKER.AABB[k][1], '造句機 AABB');
 for (const [v, o] of MAKER.V) { verify(v[0], v[1], '造句機 V'); if (o) verify(o[0], o[1], '造句機 O'); }
 for (const k in MAKER.W) verify(...MAKER.W[k], '造句機 W');
 for (const [ps] of MAKER.NS) for (const [h, l] of ps) verify(h, l, '造句機 NS');
+
+buildVocab();
+// 課的順序：詞彙課插佇語法課中間
+const ORDER = ['greet', 'lang', 'num', 'si', 'u', 'ke', 'beh', 'teh', 'si5', 'ah', 'e', 'tsiah5', 'kam', 'ka', 'hoo', 'tong', 'ti', 'kah',
+  'khah', 'sin', 'tsuian', 'mng', 'long', 'ma', 'koh', 'hing', 'tiap', 'to', 'tsiah', 'bue', 'mai', 'kap', 'e5', 'liong', 'thoo'];
+const all = [...gram, ...voc];
+if (new Set(ORDER).size !== all.length || ORDER.some(id => !all.find(L => L.id === id))) problems.push('ORDER 佮課無對齊');
+const lessonOut = ORDER.map(id => all.find(L => L.id === id));
 
 /* ---------- 輸出 ---------- */
 if (problems.length) { console.error('查證有問題：\n' + problems.join('\n')); process.exit(1); }

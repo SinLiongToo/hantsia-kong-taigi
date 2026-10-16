@@ -256,7 +256,7 @@ function onBack(fn){$('#back').onclick=()=>{SFX.back();fn()}}
 
 /* ---------- 首頁 ---------- */
 const LESSON_LO={greet:'Sio-tsioh-mn̄g',lang:'Jîn-tshing',si:'Sī / m̄-sī',u:'Ū / bô',beh:'Beh',teh:'Teh',ah:'Kù-bué --ah',e:'Ē / bē',kam:'Kám mn̄g-kù',ka:'Kā',hoo:'Hōo',ti:'Tī',kah:'Kah',khah:'Khah',mng:'Mn̄g tāi-tsì',
-  num:'Sòo-jī',ke:'Ka-jîn',si5:'Sî-kan',tsiah5:'Si̍t-bu̍t',tong:'Tōng-bu̍t',sin:'Sin-khu',hing:'Sik-tsuí kah hîng-iông',long:'Lóng',ma:'Mā',koh:'Koh',to:'Tō',tsiah:'Tsiah',bue:'Iáu-buē / buē',mai:'Mài / m̄-thang',kap:'Kah（佮）',e5:'Ê',liong:'Liōng-sû',thoo:'Thîng-tōo'};
+  num:'Sòo-jī',ke:'Ka-jîn',si5:'Sî-kan',tsiah5:'Si̍t-bu̍t',tong:'Tōng-bu̍t',sin:'Sin-khu',hing:'Sik-tsuí kah hîng-iông',long:'Lóng',ma:'Mā',koh:'Koh',to:'Tō',tsiah:'Tsiah',bue:'Iáu-buē / buē',mai:'Mài / m̄-thang',kap:'Kah（佮）',e5:'Ê',liong:'Liōng-sû',thoo:'Thîng-tōo',tsuian:'Tsū-jiân',tiap:'Thia̍p-jī hîng-iông'};
 const LESSONS=D.lessons;
 function home(){
   const totStars=Object.values(SAVE.stars).reduce((a,b)=>a+b,0);
@@ -588,16 +588,36 @@ function buildAct(c){
   return fin(tiles,END_OUT[c.E],hz,judgeAct(S,T,Dv,A,L,V,ENDS[c.E][0]));
 }
 
-/* 句型二：形容句 */
+/* 句型二：形容句（形容詞＝一般 ADJ ＋ ABB 疊字） */
+const ADJS=[...M.ADJ,...M.ABB.map(x=>[...x,null,'abb'])];
+const isMono=J=>!J[1].includes('-')&&!J[1].includes(' ');
+// 疊字：Y＝1 兩擺（紅紅／歡歡喜喜），Y＝2 三擺（紅紅紅）。AA、AAA 是照規則組的；AABB 干焦用辭典有收的
+const NO_REDUP=['好'];   // 「好好」「好好好」意思無仝（好好仔、好啦好啦），毋提來疊
+function redup(J,y){
+  if(!y)return {t:pr(J[0],J[1]),z:J[2]};
+  if(NO_REDUP.includes(J[0]))return null;
+  if(y===1&&isMono(J))return {t:pr(J[0]+J[0],J[1]+'-'+J[1]),z:J[4]||(J[2].length===1?J[2]+J[2]+'的':[...J[2]].map(ch=>ch+ch).join('')+'的')};
+  if(y===1&&M.AABB[J[0]]){const a=M.AABB[J[0]];return {t:pr(a[0],a[1]),z:a[2]}}
+  if(y===2&&isMono(J))return {t:pr(J[0]+J[0]+J[0],J[1]+'-'+J[1]+'-'+J[1]),z:J[2].length===1?'好'+J[2]+'好'+J[2]:'非常非常'+J[2]};
+  return null;
+}
 function buildAdj(c){
-  const N=M.NS[c.N],G=c.G>=0?M.DEG[c.G]:null,J=M.ADJ[c.J],e=ENDS[c.E][0];
-  const tiles=[...N[0]];if(G)tiles.push(pr(G[0],G[1]));tiles.push(pr(J[0],J[1]));
-  let why=adjWhy(N,J);
-  if(!why&&!G&&e==='。')why=`形容詞頭前通常愛加「真」「誠」這款詞。干焦講「${nsHan(N)}${J[0]}」，聽起來話猶未講煞。`;
+  const N=M.NS[c.N],G=c.G>=0?M.DEG[c.G]:null,J=ADJS[c.J],y=c.Y>0?c.Y:0,e=ENDS[c.E][0],abb=J[5]==='abb';
+  const rd=abb?{t:pr(J[0],J[1]),z:J[2]}:redup(J,y)||{t:pr(J[0],J[1]),z:J[2]};
+  const tiles=[...N[0]];if(G)tiles.push(pr(G[0],G[1]));tiles.push(rd.t);
+  const tight=abb||y;   // 疊字：本身就有程度
+  let why='';
+  if(abb&&y)why=`「${J[0]}」已經是疊字矣，袂當閣疊。`;
+  else if(!abb&&y&&!redup(J,y))why=y===2?`疊三擺干焦用佇一字的形容詞，像「紅紅紅」「媠媠媠」；「${J[0]}」較無按呢講。`:`「${J[0]}」較少疊字。換一字的形容詞來疊，像「紅紅」「懸懸」。`;
+  if(!why)why=adjWhy(N,J);
+  if(!why&&tight&&G)why=`疊字本身就有「真」的意思，頭前毋免閣加「${G[0]}」。講「${nsHan(N)}${rd.t[0]}」就好。`;
+  if(!why&&tight&&e==='無？')why='疊字是咧描寫樣相，較少用來問人。想欲問，用一般的形容詞：「…真媠無？」';
+  if(!why&&tight&&e==='矣')why='疊字是咧描寫樣相，較少配「矣」。';
+  if(!why&&!G&&!tight&&e==='。')why=`形容詞頭前通常愛加「真」「誠」這款詞，抑是疊字（${isMono(J)?J[0]+J[0]:'像「紅紅」'}）。干焦講「${nsHan(N)}${J[0]}」，聽起來話猶未講煞。`;
   if(!why&&G&&G[0]==='無'&&e==='無？')why='句尾「無？」已經是問句，頭前閣用「無」，聽起來怪怪。';
   if(!why&&G&&['真','誠','足','有夠'].includes(G[0])&&e==='矣')why=`「${G[0]}」是講這馬的狀態，「矣」是講有變化，兩个做伙較少按呢講。想欲講變化，會使講「${nsHan(N)}${J[0]}矣」抑是「${nsHan(N)}較${J[0]}矣」。`;
   if(!why&&e==='無？'&&N[0][0][0]==='我')why='家己問家己？問人的時，主語通常用「你」。';
-  return fin(tiles,END_OUT[c.E],N[1]+(G?G[2]:'')+J[2],why);
+  return fin(tiles,END_OUT[c.E],N[1]+(G?G[2]:'')+rd.z,why);
 }
 
 /* 句型三：比較句 */
@@ -610,9 +630,9 @@ function buildCmp(c){
   const hz=A[1]+(c.R===0?'比'+B[1]+J[2]:'跟'+B[1]+'一樣'+J[2]);
   let why='';
   if(c.N===c.B)why='家己佮家己比？換一个來比。';
-  else if(A[2]!==B[2])why=`「${nsHan(A)}」佮「${nsHan(B)}」無仝款，欲按怎比？揀仝一類的來比。`;
+  else if(A[3]!==B[3])why=`「${nsHan(A)}」佮「${nsHan(B)}」無仝款，欲按怎比？揀仝一類的來比。`;
   else if(nsHan(A)==='天氣'||nsHan(B)==='天氣')why='「天氣」愛講佗一工，像「今仔日比昨昏較熱」。';
-  else why=adjWhy(A,J);
+  else why=adjWhy(A,J)||adjWhy(B,J);
   if(!why&&c.Q&&A[0][0][0]==='我')why='家己問家己？問人的時，主語通常用「你」。';
   return fin(tiles,c.Q?['？','?','嗎？']:['。','.','。'],hz,why);
 }
@@ -626,10 +646,12 @@ const PAT={
     {k:'L',h:'地點',l:'Tē-tiám',opt:1,list:M.LOC.map(x=>['佇'+x[0],'tī '+x[1]])},
     {k:'V',h:'動作',l:'Tōng-tsok',list:M.V.map(([v,o])=>[v[0]+(o?o[0]:''),v[1]+(o?' '+o[1]:'')])},
     {k:'E',h:'句尾',l:'Kù-bué',list:ENDS}]},
-  adj:{h:'形容句',l:'Hîng-iông kù',build:buildAdj,def:()=>({N:2,G:0,J:3,E:0}),slots:[
+  adj:{h:'形容句',l:'Hîng-iông kù',build:buildAdj,def:()=>({N:2,G:0,J:3,Y:-1,E:0}),slots:[
     {k:'N',h:'主語',l:'Tsú-gí',list:M.NS.map(n=>[nsHan(n),n[0].map(t=>t[1]).join(' ')])},
     {k:'G',h:'程度',l:'Thîng-tōo',opt:1,list:M.DEG},
     {k:'J',h:'形容',l:'Hîng-iông',list:M.ADJ},
+    {k:'J',h:'疊字形容（ABB）',l:'Thia̍p-jī hîng-iông (ABB)',list:M.ABB,off:M.ADJ.length},
+    {k:'Y',h:'疊字',l:'Thia̍p-jī',opt:1,list:[['疊兩擺','thia̍p nn̄g pái'],['疊三擺','thia̍p sann pái']],idx:1},
     {k:'E',h:'句尾',l:'Kù-bué',list:ENDS}]},
   cmp:{h:'比較句',l:'Pí-kàu kù',build:buildCmp,def:()=>({N:0,R:0,B:2,J:5,Q:0}),slots:[
     {k:'N',h:'主語',l:'Tsú-gí',list:M.NS.map(n=>[nsHan(n),n[0].map(t=>t[1]).join(' ')])},
@@ -638,9 +660,15 @@ const PAT={
     {k:'J',h:'形容',l:'Hîng-iông',list:M.ADJ},
     {k:'Q',h:'講抑是問',l:'Kóng iah-sī mn̄g',list:QS}]},
 };
+// 仝一个 key 會使分做幾欄（像一般形容詞佮 ABB），值＝欄的 base＋序號
+const slotBase=s=>s.off||s.idx||0;
+function randomC(P){
+  const K={};for(const s of P.slots){const k=K[s.k]||(K[s.k]={n:0,base:s.idx||0,opt:s.opt});k.n+=s.list.length}
+  const c={};for(const k in K)c[k]=K[k].opt&&Math.random()<.35?-1:K[k].base+(Math.random()*K[k].n|0);return c;
+}
 function randomNatural(P){
   for(let g=0;g<3000;g++){
-    const c={};for(const s of P.slots)c[s.k]=s.opt&&Math.random()<.35?-1:Math.random()*s.list.length|0;
+    const c=randomC(P);
     if(!P.build(c).why)return c;
   }
   return P.def();
@@ -662,7 +690,7 @@ function maker(pat='act',mode='free'){
         :`<button class="btn jade" id="qchk">${X('檢查','Kiám-tsa')}</button><span class="pill">${round+1} / 8 · ✅ ${wins}</span>`}</div></div>
     <div class="slots">${P.slots.map(s=>`<div class="slot"><h3>${X(s.h,s.l)}</h3><div class="chips" data-k="${s.k}">
         ${s.opt?`<button class="chip" data-i="-1" aria-pressed="${c[s.k]===-1}"><span class="h">—</span><span class="roman">${X('免','bián')}</span></button>`:''}
-        ${s.list.map((w,i)=>`<button class="chip" data-i="${i}" aria-pressed="${c[s.k]===i}"><span class="h">${esc(w[0])}</span><span class="roman">${esc(R(w[1]))}</span></button>`).join('')}</div></div>`).join('')}</div>
+        ${s.list.map((w,i)=>`<button class="chip" data-i="${i+slotBase(s)}" aria-pressed="${c[s.k]===i+slotBase(s)}"><span class="h">${esc(w[0])}</span><span class="roman">${esc(R(w[1]))}</span></button>`).join('')}</div></div>`).join('')}</div>
     ${mode==='free'&&SAVE.book.length?`<div class="sec">${X('我的句仔簿','GUÁ Ê KÙ-Á-PHŌO')}（${SAVE.book.length}）</div><div class="book">${SAVE.book.slice(-12).reverse().map(x=>`<div>${isLo()?'':esc(x.han)+'　'}<span class="roman">${esc(R(x.lo))}</span></div>`).join('')}</div>`:''}
     <footer>${X('造句機的詞攏有對教育部辭典查證；「自然無」的判斷是 AI 整理的教學規則，毋是官方資料，實際講話有時較活。','Sû lóng ū tuì sû-tián tshâ-tsìng.')}</footer>`;
     onBack(home);
